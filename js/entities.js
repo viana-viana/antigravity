@@ -25,21 +25,23 @@ export class Entity {
 
 export class Player extends Entity {
     constructor(game) {
-        super(5, 20, 8, 5); // Approximate size
+        super(5, 20, 11, 7);
         this.game = game;
         this.speed = 30;
         this.cooldown = 0;
 
-        // Simple ship sprite
+        // More accurate ship sprite (side view)
         this.sprite = [
-            [0, 0, 0, 0, 1, 1, 0, 0],
-            [0, 1, 1, 1, 1, 1, 1, 0],
-            [1, 1, 1, 1, 1, 1, 1, 1],
-            [0, 1, 1, 1, 1, 1, 1, 0],
-            [0, 0, 0, 0, 1, 1, 0, 0]
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ];
-        this.width = 8;
-        this.height = 5;
+        this.width = 11;
+        this.height = 7;
     }
 
     update(dt) {
@@ -55,8 +57,8 @@ export class Player extends Entity {
         // Shooting
         if (this.cooldown > 0) this.cooldown -= dt;
         if (this.game.input.isDown('Space') && this.cooldown <= 0) {
-            this.game.projectiles.push(new Projectile(this.x + this.width, this.y + 2));
-            this.cooldown = 0.3;
+            this.game.projectiles.push(new Projectile(this.x + this.width, this.y + 3));
+            this.cooldown = 0.25;
         }
     }
 
@@ -67,7 +69,7 @@ export class Player extends Entity {
 
 export class Projectile extends Entity {
     constructor(x, y) {
-        super(x, y, 3, 1);
+        super(x, y, 4, 1);
         this.speed = 80;
     }
 
@@ -82,22 +84,50 @@ export class Projectile extends Entity {
 }
 
 export class Enemy extends Entity {
-    constructor(game, x, y) {
-        super(x, y, 6, 5);
+    constructor(game, x, y, type = 'basic') {
+        super(x, y, 8, 7);
         this.game = game;
         this.speed = 15;
         this.hp = 1;
+        this.type = type;
 
-        // Simple enemy sprite
-        this.sprite = [
-            [0, 1, 1, 1, 0, 0],
-            [1, 1, 1, 1, 1, 0],
-            [0, 1, 1, 1, 0, 1],
-            [1, 1, 1, 1, 1, 0],
-            [0, 1, 1, 1, 0, 0]
-        ];
-        this.width = 6;
-        this.height = 5;
+        if (type === 'squid') {
+            this.sprite = [
+                [0, 0, 1, 1, 1, 0, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [1, 1, 0, 1, 0, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1],
+                [0, 1, 0, 1, 0, 1, 0],
+                [0, 1, 0, 0, 0, 1, 0]
+            ];
+            this.width = 7;
+            this.height = 6;
+            this.hp = 2;
+        } else if (type === 'skull') {
+            this.sprite = [
+                [0, 1, 1, 1, 1, 0],
+                [1, 1, 1, 1, 1, 1],
+                [1, 0, 1, 1, 0, 1],
+                [1, 1, 1, 1, 1, 1],
+                [0, 1, 0, 0, 1, 0],
+                [0, 1, 0, 0, 1, 0]
+            ];
+            this.width = 6;
+            this.height = 6;
+            this.hp = 3;
+        } else {
+            // Basic
+            this.sprite = [
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 1, 1, 1, 1, 1, 0],
+                [1, 1, 1, 1, 1, 1, 1, 1],
+                [0, 0, 1, 1, 1, 1, 1, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0]
+            ];
+            this.width = 8;
+            this.height = 5;
+            this.hp = 1;
+        }
     }
 
     update(dt) {
