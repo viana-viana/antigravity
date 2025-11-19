@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuneScape Clone (No Server Required)</title>
+    <style>
+        /* Basic Reset */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Verdana', sans-serif;
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #inventory {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 200px;
+            height: 280px;
+            background-color: #3e3529;
+            border: 2px solid #5d5245;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            gap: 2px;
+            padding: 5px;
+            pointer-events: auto;
+        }
+
+        .inv-slot {
+            background-color: #2b2319;
+            border: 1px solid #1a150f;
+        }
+
+        .inv-item {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10px;
+            color: white;
+            cursor: pointer;
+        }
+
+        #chatbox {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 400px;
+            height: 150px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 1px solid #555;
+            color: white;
+            font-family: monospace;
+            overflow-y: auto;
+            padding: 5px;
+            pointer-events: auto;
+        }
+
+        .chat-msg {
+            margin: 2px 0;
+        }
+
+        .chat-msg.system {
+            color: yellow;
+        }
+
+        .chat-msg.action {
+            color: cyan;
+        }
+
+        #xp-tracker {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px;
+            border: 1px solid #555;
+            pointer-events: auto;
+        }
+    </style>
+    <!-- Load Three.js as a global script (UMD) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+</head>
+
+<body>
+    <div id="ui-container">
+        <div id="xp-tracker">
+            <div>Woodcutting: <span id="xp-wc">1</span></div>
+            <div>Mining: <span id="xp-mine">1</span></div>
+        </div>
+        <button onclick="toggleCustomization()"
+            style="position:absolute; top:10px; right:10px; pointer-events:auto;">Customize Character</button>
+        <div id="chatbox">Welcome to RuneScape Clone!</div>
+        <div id="inventory">
+            <!-- 28 slots -->
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+            <div class="inv-slot"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- UI MODULE ---
+        function addMessage(text, type = "normal") {
+            const chatbox = document.getElementById('chatbox');
+            const msg = document.createElement('div');
+            msg.className = `chat-msg ${type}`;
+            msg.textContent = text;
+            chatbox.appendChild(msg);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function updateXPUI(skills) {
+            document.getElementById('xp-wc').textContent = skills.woodcutting.level;
+            document.getElementById('xp-mine').textContent = skills.mining.level;
+        }
+
+        function toggleCustomization() {
+            const color = prompt("Enter shirt color (hex, e.g. #ff0000):", "#ff0000");
+            if (color && game.player && game.player.mesh) {
+                game.player.mesh.material.color.set(color);
+            }
+        }
+
+        function addLog() { addItem("Log", "#5c4033"); }
+        function addOre() { addItem("Ore", "#887766"); }
+
+        function addItem(name, color) {
+            const inventory = document.getElementById('inventory');
+            const slots = inventory.getElementsByClassName('inv-slot');
+            for (let slot of slots) {
+                if (!slot.hasChildNodes()) {
+                    const item = document.createElement('div');
+                    item.className = 'inv-item';
+                    item.textContent = name;
+                    item.style.backgroundColor = color;
+                    item.style.borderRadius = "50%";
+                    item.style.width = "30px";
+                    item.style.height = "30px";
+                    item.style.margin = "auto";
+                    slot.appendChild(item);
+                    return;
+                }
+            }
+            addMessage("Inventory is full!", "system");
+        }
+
+        // --- SKILLS MODULE ---
+        const skills = {
+            woodcutting: { xp: 0, level: 1 },
+            mining: { xp: 0, level: 1 }
+        };
+
+        function addXP(skillName, amount) {
+            if (!skills[skillName]) return;
+            skills[skillName].xp += amount;
+            const currentLevel = skills[skillName].level;
+            const newLevel = Math.floor(Math.sqrt(skills[skillName].xp / 10)) + 1;
+            if (newLevel > currentLevel) {
+                skills[skillName].level = newLevel;
+                addMessage(`Congratulations! You just advanced a ${skillName} level.`, "system");
+                addMessage(`Your ${skillName} level is now ${newLevel}.`, "system");
+            }
+            updateXPUI(skills);
+        }
+
+        // --- GAME STATE ---
+        const game = {
+            scene: null, camera: null, renderer: null,
+            player: null, world: null,
+            clock: new THREE.Clock(),
+            raycaster: new THREE.Raycaster(),
+            pointer: new THREE.Vector2()
+        };
+
+        // --- PLAYER MODULE ---
+        function createPlayer(scene) {
+            const player = {
+                mesh: null, targetPosition: null, speed: 5, state: 'idle'
+            };
+            // Use CylinderGeometry to be safe across versions
+            const geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 8);
+            const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+            player.mesh = new THREE.Mesh(geometry, material);
+            player.mesh.position.set(0, 1, 0);
+            player.mesh.castShadow = true;
+
+            const headGeo = new THREE.SphereGeometry(0.4, 8, 8);
+            const headMat = new THREE.MeshStandardMaterial({ color: 0xffccaa });
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.set(0, 0.8, 0);
+            player.mesh.add(head);
+
+            scene.add(player.mesh);
+            return player;
+        }
+
+        function updatePlayer(player, delta, camera) {
+            if (!player.targetPosition) return;
+            const currentPos = player.mesh.position;
+            const target = player.targetPosition;
+            const direction = new THREE.Vector3().subVectors(target, currentPos);
+            direction.y = 0;
+            const distance = direction.length();
+
+            if (distance > 0.1) {
+                direction.normalize();
+                const moveStep = direction.multiplyScalar(player.speed * delta);
+                if (moveStep.length() > distance) {
+                    currentPos.x = target.x; currentPos.z = target.z;
+                    player.targetPosition = null;
+                } else {
+                    currentPos.add(moveStep);
+                    player.mesh.lookAt(target.x, player.mesh.position.y, target.z);
+                }
+            } else {
+                player.targetPosition = null;
+            }
+            const offset = new THREE.Vector3(10, 10, 10);
+            camera.position.copy(currentPos).add(offset);
+            camera.lookAt(currentPos);
+        }
+
+        // --- NPC MODULE ---
+        function createNPCs(scene, world) {
+            const guide = createNPCMesh(0xffff00);
+            guide.position.set(-5, 0, 0);
+            guide.userData = { type: 'npc', name: 'Guide', dialog: ["Welcome!", "Click trees to chop.", "Click rocks to mine."] };
+            scene.add(guide);
+            world.npcs.push(guide);
+
+            const goblin = createNPCMesh(0x00ff00, 0.7);
+            goblin.position.set(25, 0, 5);
+            goblin.userData = { type: 'npc', name: 'Goblin', dialog: ["Me smash!", "Go away!"] };
+            scene.add(goblin);
+            world.npcs.push(goblin);
+        }
+
+        function createNPCMesh(color, scale = 1) {
+            const group = new THREE.Group();
+            const bodyGeo = new THREE.CylinderGeometry(0.5 * scale, 0.5 * scale, 1 * scale, 8);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: color });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 1 * scale;
+            body.castShadow = true;
+            group.add(body);
+            const headGeo = new THREE.SphereGeometry(0.4 * scale, 8, 8);
+            const headMat = new THREE.MeshStandardMaterial({ color: 0xffccaa });
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.y = 1.8 * scale;
+            group.add(head);
+            return group;
+        }
+
+        function interactWithNPC(npc) {
+            addMessage(`${npc.userData.name}: Hello!`, "system");
+            let lineIndex = 0;
+            const lines = npc.userData.dialog;
+            function showNextLine() {
+                if (lineIndex < lines.length) {
+                    addMessage(`${npc.userData.name}: ${lines[lineIndex]}`, "normal");
+                    lineIndex++;
+                    setTimeout(showNextLine, 1500);
+                }
+            }
+            showNextLine();
+        }
+
+        // --- WORLD MODULE ---
+        function createWorld(scene) {
+            const world = { trees: [], rocks: [], npcs: [] };
+
+            const groundGeo = new THREE.PlaneGeometry(100, 100);
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x5da130 });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            ground.name = "ground";
+            scene.add(ground);
+
+            const riverGeo = new THREE.PlaneGeometry(20, 100);
+            const riverMat = new THREE.MeshStandardMaterial({ color: 0x0077be });
+            const river = new THREE.Mesh(riverGeo, riverMat);
+            river.rotation.x = -Math.PI / 2;
+            river.position.set(20, 0.01, 0);
+            scene.add(river);
+
+            const bridgeGeo = new THREE.BoxGeometry(10, 0.5, 6);
+            const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+            const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
+            bridge.position.set(20, 0.2, 0);
+            scene.add(bridge);
+
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x808080 });
+            const wall1 = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 30), wallMat); wall1.position.set(-15, 3, 0); scene.add(wall1);
+            const wall2 = new THREE.Mesh(new THREE.BoxGeometry(30, 6, 2), wallMat); wall2.position.set(0, 3, -15); scene.add(wall2);
+            const wall3 = new THREE.Mesh(new THREE.BoxGeometry(30, 6, 2), wallMat); wall3.position.set(0, 3, 15); scene.add(wall3);
+
+            for (let i = 0; i < 30; i++) {
+                const x = (Math.random() - 0.5) * 90;
+                const z = (Math.random() - 0.5) * 90;
+                if ((x > 10 && x < 30) || (x > -20 && x < 20 && z > -20 && z < 20)) continue;
+                const tree = createTree();
+                tree.position.set(x, 0, z);
+                scene.add(tree);
+                world.trees.push(tree);
+            }
+
+            for (let i = 0; i < 10; i++) {
+                const x = (Math.random() - 0.5) * 90;
+                const z = (Math.random() - 0.5) * 90;
+                if ((x > 10 && x < 30) || (x > -20 && x < 20 && z > -20 && z < 20)) continue;
+                const rock = createRock();
+                rock.position.set(x, 0, z);
+                scene.add(rock);
+                world.rocks.push(rock);
+            }
+            return world;
+        }
+
+        function createTree() {
+            const group = new THREE.Group();
+            group.name = "tree";
+            group.userData = { type: 'resource', resourceType: 'wood', xp: 25, name: 'Tree' };
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.5, 6);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033 });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 0.75;
+            group.add(trunk);
+            const leavesGeo = new THREE.ConeGeometry(1.5, 3, 8);
+            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+            const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+            leaves.position.y = 2.25;
+            group.add(leaves);
+            return group;
+        }
+
+        function createRock() {
+            const group = new THREE.Group();
+            group.name = "rock";
+            group.userData = { type: 'resource', resourceType: 'ore', xp: 35, name: 'Copper Rock' };
+            const geo = new THREE.DodecahedronGeometry(0.8);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x887766 });
+            const rock = new THREE.Mesh(geo, mat);
+            rock.position.y = 0.5;
+            rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            group.add(rock);
+            return group;
+        }
+
+        function updateWorld(world, delta) { }
+
+        // --- INTERACTION MODULE ---
+        function setupInteraction(game) {
+            window.addEventListener('pointerdown', (event) => onPointerDown(event, game));
+        }
+
+        function onPointerDown(event, game) {
+            if (event.target.tagName === 'BUTTON') return; // Ignore UI clicks
+            game.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            game.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            game.raycaster.setFromCamera(game.pointer, game.camera);
+            const intersects = game.raycaster.intersectObjects(game.scene.children, true);
+
+            if (intersects.length > 0) {
+                let target = null;
+                let point = null;
+                for (let hit of intersects) {
+                    let obj = hit.object;
+                    while (obj.parent && obj.parent.type !== 'Scene') {
+                        if (obj.userData && (obj.userData.type === 'resource' || obj.userData.type === 'npc')) {
+                            target = obj; break;
+                        }
+                        obj = obj.parent;
+                    }
+                    if (target) { point = hit.point; break; }
+                    if (hit.object.name === 'ground') { target = hit.object; point = hit.point; break; }
+                }
+                if (target) handleInteraction(target, point, game);
+            }
+        }
+
+        function handleInteraction(target, point, game) {
+            if (target.name === 'ground') {
+                game.player.targetPosition = point;
+                addMessage("Walking...", "action");
+            } else if (target.userData.type === 'resource') {
+                game.player.targetPosition = point;
+                setTimeout(() => {
+                    if (game.player.mesh.position.distanceTo(point) < 3.0) gatherResource(target);
+                }, 1000);
+            } else if (target.userData.type === 'npc') {
+                game.player.targetPosition = point;
+                setTimeout(() => {
+                    if (game.player.mesh.position.distanceTo(point) < 3.0) interactWithNPC(target);
+                }, 1000);
+            }
+        }
+
+        function gatherResource(obj) {
+            const type = obj.userData.resourceType;
+            addMessage(`You swing at the ${obj.userData.name}...`, "action");
+            setTimeout(() => {
+                if (type === 'wood') { addMessage("You get logs.", "system"); addLog(); addXP('woodcutting', obj.userData.xp); }
+                else if (type === 'ore') { addMessage("You get ore.", "system"); addOre(); addXP('mining', obj.userData.xp); }
+                obj.visible = false;
+                setTimeout(() => { obj.visible = true; }, 5000);
+            }, 1000);
+        }
+
+        // --- MAIN INIT ---
+        function init() {
+            game.scene = new THREE.Scene();
+            game.scene.background = new THREE.Color(0x87CEEB);
+
+            const aspect = window.innerWidth / window.innerHeight;
+            game.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
+            game.camera.position.set(10, 10, 10);
+            game.camera.lookAt(0, 0, 0);
+
+            game.renderer = new THREE.WebGLRenderer({ antialias: true });
+            game.renderer.setSize(window.innerWidth, window.innerHeight);
+            game.renderer.shadowMap.enabled = true;
+            document.body.appendChild(game.renderer.domElement);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            game.scene.add(ambient);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(20, 20, 10);
+            dirLight.castShadow = true;
+            game.scene.add(dirLight);
+
+            game.world = createWorld(game.scene);
+            createNPCs(game.scene, game.world);
+            game.player = createPlayer(game.scene);
+            setupInteraction(game);
+
+            window.addEventListener('resize', () => {
+                game.camera.aspect = window.innerWidth / window.innerHeight;
+                game.camera.updateProjectionMatrix();
+                game.renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = game.clock.getDelta();
+            if (game.player) updatePlayer(game.player, delta, game.camera);
+            game.renderer.render(game.scene, game.camera);
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+
+</html>
