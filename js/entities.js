@@ -109,3 +109,74 @@ export class Enemy extends Entity {
         renderer.drawSprite(this.x, this.y, this.sprite);
     }
 }
+
+export class EnemyProjectile extends Entity {
+    constructor(x, y) {
+        super(x, y, 3, 1);
+        this.speed = 50;
+    }
+
+    update(dt) {
+        this.x -= this.speed * dt;
+        if (this.x < -10) this.markedForDeletion = true;
+    }
+
+    draw(renderer) {
+        renderer.drawRect(this.x, this.y, this.width, this.height);
+    }
+}
+
+export class Boss extends Entity {
+    constructor(game, x, y) {
+        super(x, y, 20, 14);
+        this.game = game;
+        this.speed = 10;
+        this.hp = 30;
+        this.maxHp = 30;
+        this.direction = 1;
+        this.shootTimer = 0;
+
+        // Big boss sprite
+        this.sprite = [
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+            [0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0],
+            [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0],
+            [0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+        ];
+        this.width = 20;
+        this.height = 14;
+    }
+
+    update(dt) {
+        // Move into position then bob up and down
+        if (this.x > this.game.width - 25) {
+            this.x -= this.speed * dt;
+        } else {
+            this.y += this.speed * this.direction * dt;
+            if (this.y < 2 || this.y > this.game.height - this.height - 2) {
+                this.direction *= -1;
+            }
+        }
+
+        // Shoot
+        this.shootTimer -= dt;
+        if (this.shootTimer <= 0) {
+            this.game.enemyProjectiles.push(new EnemyProjectile(this.x, this.y + this.height / 2));
+            this.shootTimer = 1.5; // Fire every 1.5 seconds
+        }
+    }
+
+    draw(renderer) {
+        renderer.drawSprite(this.x, this.y, this.sprite);
+    }
+}
