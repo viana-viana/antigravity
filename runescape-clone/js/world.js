@@ -1,88 +1,175 @@
-import * as THREE from 'three';
-import { updateNPC } from './npc.js';
-
-export function createWorld(scene) {
+// --- WORLD MODULE ---
+function createWorld(scene) {
     const world = {
         trees: [],
         rocks: [],
-        npcs: []
+        npcs: [],
+        river: []
     };
 
-    // Ground (Green Grass)
-    const groundGeo = new THREE.PlaneGeometry(100, 100);
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x5da130 });
+    // Ground
+    const groundGeo = new THREE.PlaneGeometry(100, 100, 64, 64);
+    const groundMat = new THREE.MeshStandardMaterial({ map: textures.grass });
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     ground.name = "ground";
     scene.add(ground);
 
-    // River (Blue Strip)
-    const riverGeo = new THREE.PlaneGeometry(20, 100);
-    const riverMat = new THREE.MeshStandardMaterial({ color: 0x0077be });
-    const river = new THREE.Mesh(riverGeo, riverMat);
-    river.rotation.x = -Math.PI / 2;
-    river.position.set(20, 0.01, 0); // Slightly above ground to prevent z-fighting
-    river.receiveShadow = true;
-    scene.add(river);
+    // River - winding path using multiple segments
+    const waterMat = new THREE.MeshStandardMaterial({
+        color: 0x4488ff,
+        transparent: true,
+        opacity: 0.7,
+        roughness: 0.1,
+        metalness: 0.3
+    });
 
-    // Bridge
-    const bridgeGeo = new THREE.BoxGeometry(10, 0.5, 6);
-    const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+    // Create river segments that curve
+    const riverSegments = [
+        { x: 20, z: -20, width: 4, length: 15, rotation: 0 },
+        { x: 20, z: -10, width: 5, length: 8, rotation: 0.2 },
+        { x: 21, z: -3, width: 4, length: 8, rotation: -0.1 },
+        { x: 20, z: 3, width: 5, length: 8, rotation: 0.15 },
+        { x: 19, z: 10, width: 4, length: 8, rotation: -0.2 },
+        { x: 20, z: 17, width: 5, length: 10, rotation: 0 }
+    ];
+
+    riverSegments.forEach(seg => {
+        const riverPart = new THREE.Mesh(
+            new THREE.BoxGeometry(seg.width, 0.2, seg.length),
+            waterMat
+        );
+        riverPart.position.set(seg.x, -0.3, seg.z);
+        riverPart.rotation.y = seg.rotation;
+        riverPart.receiveShadow = true;
+        riverPart.name = 'river'; // Mark as river for collision detection
+        scene.add(riverPart);
+        world.river.push(riverPart); // Store river segments
+    });
+
+    // Create riverbed (carved ground channel)
+    const riverbedMat = new THREE.MeshStandardMaterial({
+        map: textures.stone,
+        color: 0x8b7355 // Brownish color for riverbed
+    });
+
+    riverSegments.forEach(seg => {
+        const riverbed = new THREE.Mesh(
+            new THREE.BoxGeometry(seg.width + 2, 0.5, seg.length + 2),
+            riverbedMat
+        );
+        riverbed.position.set(seg.x, -0.4, seg.z);
+        riverbed.rotation.y = seg.rotation;
+        riverbed.receiveShadow = true;
+        scene.add(riverbed);
+    });
+
+    // Bridge - positioned over the middle of the river
+    const bridgeGeo = new THREE.BoxGeometry(8, 0.3, 6);
+    const bridgeMat = new THREE.MeshStandardMaterial({ map: textures.wood });
     const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
-    bridge.position.set(20, 0.2, 0);
-    bridge.receiveShadow = true;
+    bridge.position.set(20, 0.25, 0);
     bridge.castShadow = true;
+    bridge.receiveShadow = true;
+    bridge.name = 'bridge';
     scene.add(bridge);
 
-    // Castle Walls (Placeholder Grey Blocks)
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x808080 });
+    // === CASTLE ===
+    // Floor
+    const castleFloorGeo = new THREE.BoxGeometry(20, 0.2, 20);
+    const castleFloorMat = new THREE.MeshStandardMaterial({ map: textures.stone });
+    const castleFloor = new THREE.Mesh(castleFloorGeo, castleFloorMat);
+    castleFloor.position.set(-5, 0.1, -5);
+    castleFloor.receiveShadow = true;
+    scene.add(castleFloor);
 
-    // West Wall
-    const wall1 = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 30), wallMat);
-    wall1.position.set(-15, 3, 0);
-    wall1.castShadow = true;
-    scene.add(wall1);
+    // Wall material
+    const wallMat = new THREE.MeshStandardMaterial({ map: textures.bricks });
 
-    // North Wall
-    const wall2 = new THREE.Mesh(new THREE.BoxGeometry(30, 6, 2), wallMat);
-    wall2.position.set(0, 3, -15);
-    wall2.castShadow = true;
-    scene.add(wall2);
+    // West wall (back) - full wall
+    const westWall = new THREE.Mesh(new THREE.BoxGeometry(1, 5, 20), wallMat);
+    westWall.position.set(-15, 2.5, -5);
+    westWall.castShadow = true;
+    westWall.receiveShadow = true;
+    scene.add(westWall);
 
-    // South Wall
-    const wall3 = new THREE.Mesh(new THREE.BoxGeometry(30, 6, 2), wallMat);
-    wall3.position.set(0, 3, 15);
-    wall3.castShadow = true;
-    scene.add(wall3);
+    // East wall (front with gate) - split for gate entrance
+    const eastWallLeft = new THREE.Mesh(new THREE.BoxGeometry(1, 5, 7), wallMat);
+    eastWallLeft.position.set(5, 2.5, -11.5);
+    eastWallLeft.castShadow = true;
+    scene.add(eastWallLeft);
 
-    // Trees (Randomly placed, avoiding river and castle)
-    for (let i = 0; i < 30; i++) {
+    const eastWallRight = new THREE.Mesh(new THREE.BoxGeometry(1, 5, 7), wallMat);
+    eastWallRight.position.set(5, 2.5, 1.5);
+    eastWallRight.castShadow = true;
+    scene.add(eastWallRight);
+
+    // Gate arch above entrance
+    const gateArch = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 6), wallMat);
+    gateArch.position.set(5, 5, -5);
+    gateArch.castShadow = true;
+    scene.add(gateArch);
+
+    // North wall (right side)
+    const northWall = new THREE.Mesh(new THREE.BoxGeometry(20, 5, 1), wallMat);
+    northWall.position.set(-5, 2.5, -15);
+    northWall.castShadow = true;
+    scene.add(northWall);
+
+    // South wall (left side)
+    const southWall = new THREE.Mesh(new THREE.BoxGeometry(20, 5, 1), wallMat);
+    southWall.position.set(-5, 2.5, 5);
+    southWall.castShadow = true;
+    scene.add(southWall);
+
+    // Corner Towers
+    const towerGeo = new THREE.CylinderGeometry(2, 2, 8, 8);
+    const towerRoofGeo = new THREE.ConeGeometry(2.5, 3, 8);
+    const towerRoofMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+
+    function createTower(x, z) {
+        const tower = new THREE.Mesh(towerGeo, wallMat);
+        tower.position.set(x, 4, z);
+        tower.castShadow = true;
+        scene.add(tower);
+
+        const roof = new THREE.Mesh(towerRoofGeo, towerRoofMat);
+        roof.position.set(x, 9.5, z);
+        roof.castShadow = true;
+        scene.add(roof);
+    }
+
+    // Place towers at corners
+    createTower(-15, -15); // Back-left
+    createTower(-15, 5);   // Back-right
+    createTower(5, -15);   // Front-left (near gate)
+    createTower(5, 5);     // Front-right (near gate)
+
+    // Spawn trees
+    for (let i = 0; i < 40; i++) {
         const x = (Math.random() - 0.5) * 90;
         const z = (Math.random() - 0.5) * 90;
-
-        // Simple collision check (avoid river x=10 to x=30, and castle area x=-15 to 15, z=-15 to 15)
-        if ((x > 10 && x < 30) || (x > -20 && x < 20 && z > -20 && z < 20)) continue;
-
+        // Don't spawn inside castle or on river
+        if ((x > 10 && x < 30) || (x > -15 && x < 5 && z > -15 && z < 5)) continue;
         const tree = createTree();
         tree.position.set(x, 0, z);
+        tree.rotation.y = Math.random() * Math.PI;
         scene.add(tree);
         world.trees.push(tree);
     }
 
-    // Rocks (Mining)
-    for (let i = 0; i < 10; i++) {
+    // Spawn rocks
+    for (let i = 0; i < 15; i++) {
         const x = (Math.random() - 0.5) * 90;
         const z = (Math.random() - 0.5) * 90;
-
-        if ((x > 10 && x < 30) || (x > -20 && x < 20 && z > -20 && z < 20)) continue;
-
+        // Don't spawn inside castle or on river
+        if ((x > 10 && x < 30) || (x > -15 && x < 5 && z > -15 && z < 5)) continue;
         const rock = createRock();
         rock.position.set(x, 0, z);
         scene.add(rock);
         world.rocks.push(rock);
     }
-
     return world;
 }
 
@@ -91,22 +178,30 @@ function createTree() {
     group.name = "tree";
     group.userData = { type: 'resource', resourceType: 'wood', xp: 25, name: 'Tree' };
 
-    // Trunk
-    const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.5, 6);
-    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033 });
+    // Trunk - High poly cylinder
+    const trunkGeo = new THREE.CylinderGeometry(0.3, 0.5, 2, 16);
+    const trunkMat = new THREE.MeshStandardMaterial({ map: textures.wood });
     const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-    trunk.position.y = 0.75;
-    trunk.castShadow = true;
+    trunk.position.y = 1;
     group.add(trunk);
 
-    // Leaves
-    const leavesGeo = new THREE.ConeGeometry(1.5, 3, 8);
-    const leavesMat = new THREE.MeshStandardMaterial({ color: 0x228b22 });
-    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
-    leaves.position.y = 2.25;
-    leaves.castShadow = true;
-    group.add(leaves);
+    // Leaves - High poly spheres
+    const leavesMat = new THREE.MeshStandardMaterial({ map: textures.leaves });
+    const leafGeo = new THREE.SphereGeometry(1.2, 16, 16); // Smoother leaves
 
+    const leaf1 = new THREE.Mesh(leafGeo, leavesMat);
+    leaf1.position.y = 2.5;
+    group.add(leaf1);
+
+    const leaf2 = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 16), leavesMat);
+    leaf2.position.set(0.8, 2.0, 0);
+    group.add(leaf2);
+
+    const leaf3 = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 16), leavesMat);
+    leaf3.position.set(-0.8, 2.2, 0.5);
+    group.add(leaf3);
+
+    group.traverse(c => { c.castShadow = true; c.receiveShadow = true; });
     return group;
 }
 
@@ -115,21 +210,29 @@ function createRock() {
     group.name = "rock";
     group.userData = { type: 'resource', resourceType: 'ore', xp: 35, name: 'Copper Rock' };
 
-    const geo = new THREE.DodecahedronGeometry(0.8);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x887766 }); // Copper-ish
+    // Base Rock - High poly dodecahedron (detail level 1 adds vertices)
+    const geo = new THREE.DodecahedronGeometry(0.8, 1);
+    const mat = new THREE.MeshStandardMaterial({ map: textures.stone, roughness: 0.9 });
     const rock = new THREE.Mesh(geo, mat);
-    rock.position.y = 0.5;
-    rock.castShadow = true;
-
-    // Random rotation for variety
+    rock.position.y = 0.4;
     rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-
+    rock.scale.set(1.2, 0.8, 1.2);
     group.add(rock);
+
+    // Veins (Copper)
+    const veinMat = new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.4, metalness: 0.8 });
+    for (let i = 0; i < 3; i++) {
+        const vein = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), veinMat); // Spherical veins
+        vein.position.set((Math.random() - 0.5), 0.6, (Math.random() - 0.5));
+        group.add(vein);
+    }
+
+    group.traverse(c => { c.castShadow = true; c.receiveShadow = true; });
     return group;
 }
 
-export function updateWorld(world, delta) {
-    if (world.npcs) {
-        world.npcs.forEach(npc => updateNPC(npc, delta));
-    }
+function updateWorld(world, delta) {
+    world.npcs.forEach(npc => {
+        updateNPC(npc, delta);
+    });
 }
