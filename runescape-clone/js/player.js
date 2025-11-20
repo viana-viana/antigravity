@@ -1,41 +1,40 @@
 import * as THREE from 'three';
+import { createCharacterMesh } from './character_model.js';
 
 export function createPlayer(scene) {
     const player = {
         mesh: null,
         targetPosition: null,
         speed: 5,
-        state: 'idle' // idle, moving, chopping
+        state: 'idle', // idle, moving, chopping
+        animationTime: 0
     };
 
-    // Simple Capsule/Cylinder for player
-    const geometry = new THREE.CapsuleGeometry(0.5, 1, 4, 8);
-    const material = new THREE.MeshStandardMaterial({ color: 0xff0000 }); // Red shirt
-    player.mesh = new THREE.Mesh(geometry, material);
-    player.mesh.position.set(0, 1, 0);
-    player.mesh.castShadow = true;
-
-    // Add a "head" to make it look more like a person
-    const headGeo = new THREE.SphereGeometry(0.4, 8, 8);
-    const headMat = new THREE.MeshStandardMaterial({ color: 0xffccaa }); // Skin tone
-    const head = new THREE.Mesh(headGeo, headMat);
-    head.position.set(0, 0.8, 0);
-    player.mesh.add(head);
-
+    // Use new hierarchical model
+    player.mesh = createCharacterMesh(0xff0000); // Red shirt
     scene.add(player.mesh);
 
     return player;
 }
 
 export function updatePlayer(player, delta, camera) {
-    if (!player.targetPosition) return;
+    // Animation Logic
+    player.animationTime += delta;
+    animatePlayer(player);
+
+    if (!player.targetPosition) {
+        player.state = 'idle';
+        // Camera Follow (even when idle)
+        updateCamera(player, camera);
+        return;
+    }
 
     const currentPos = player.mesh.position;
     const target = player.targetPosition;
 
     // Calculate direction
     const direction = new THREE.Vector3().subVectors(target, currentPos);
-    direction.y = 0; // Keep movement on flat plane for now
+    direction.y = 0; // Keep movement on flat plane
     const distance = direction.length();
 
     if (distance > 0.1) {
@@ -60,21 +59,51 @@ export function updatePlayer(player, delta, camera) {
         player.state = 'idle';
     }
 
-    // Camera Follow
+    updateCamera(player, camera);
+}
+
+function updateCamera(player, camera) {
     const offset = new THREE.Vector3(10, 10, 10);
-    camera.position.copy(currentPos).add(offset);
-    camera.lookAt(currentPos);
+    camera.position.copy(player.mesh.position).add(offset);
+    camera.lookAt(player.mesh.position);
+}
+
+function animatePlayer(player) {
+    const parts = player.mesh.userData;
+    const time = player.animationTime;
+
+    if (player.state === 'idle') {
+        // Breathing / Bobbing
+        parts.torso.position.y = (0.8 / 2 + 0.8) + Math.sin(time * 2) * 0.02;
+
+        // Reset limbs
+        parts.leftArm.rotation.x = THREE.MathUtils.lerp(parts.leftArm.rotation.x, 0, 0.1);
+        parts.rightArm.rotation.x = THREE.MathUtils.lerp(parts.rightArm.rotation.x, 0, 0.1);
+        parts.leftLeg.rotation.x = THREE.MathUtils.lerp(parts.leftLeg.rotation.x, 0, 0.1);
+        parts.rightLeg.rotation.x = THREE.MathUtils.lerp(parts.rightLeg.rotation.x, 0, 0.1);
+    }
+    else if (player.state === 'moving') {
+        const speed = 12; // Slightly faster
+        const amp = 0.8; // More exaggerated swing
+
+        // Arm Swing
+        parts.leftArm.rotation.x = Math.sin(time * speed) * amp;
+        parts.rightArm.rotation.x = Math.sin(time * speed + Math.PI) * amp;
+
+        // Leg Swing (Opposite to arms)
+        parts.leftLeg.rotation.x = Math.sin(time * speed + Math.PI) * amp;
+        parts.rightLeg.rotation.x = Math.sin(time * speed) * amp;
+    }
+    else if (player.state === 'chopping' || player.state === 'mining') {
+        // Action animation
+        const speed = 15;
+        parts.rightArm.rotation.x = -Math.PI / 2 + Math.sin(time * speed) * 0.5;
+        parts.torso.rotation.y = Math.sin(time * speed) * 0.2;
+    }
 }
 
 window.addEventListener('changeColor', (e) => {
-    // Find player mesh in scene (hacky but works for singleton)
-    // Ideally pass player object to this scope or store globally
-    // Since we don't have easy access to 'player' var here without export/import cycle or global
-    // We will rely on the fact that we can find it in the scene or pass it differently.
-    // Actually, let's just look for the mesh with specific properties or keep it simple.
-    // Better: The game loop calls updatePlayer, but we need to set the color.
-    // Let's assume the player mesh is the only one with a specific name or we can traverse.
-    // For MVP, let's just re-select it from the scene if possible, OR better:
-    // We can't easily access the specific 'player' instance created in game.js here.
-    // Let's modify game.js to handle this event since it holds the player ref.
+    // We need a way to access the player instance or we can search the scene
+    // But since we don't have the player instance here easily without global, 
+    // we will leave this for now or handle it in game.js
 });

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { updateNPC } from './npc.js';
 
 export function createWorld(scene) {
     const world = {
@@ -128,5 +129,7 @@ function createRock() {
 }
 
 export function updateWorld(world, delta) {
-    // Animation or updates for world objects can go here
+    if (world.npcs) {
+        world.npcs.forEach(npc => updateNPC(npc, delta));
+    }
 }

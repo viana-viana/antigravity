@@ -51,11 +51,7 @@ function onPointerDown(event, game) {
 }
 
 function handleInteraction(target, point, game) {
-    if (target.name === 'ground') {
-        // Move to point
-        game.player.targetPosition = point;
-        addMessage("Walking...", "action");
-    } else if (target.userData.type === 'resource') {
+    if (target.userData.type === 'resource') {
         // Move to resource
         game.player.targetPosition = point;
 
@@ -65,6 +61,9 @@ function handleInteraction(target, point, game) {
                 gatherResource(target);
             }
         }, 1000);
+    } else if (target.name === 'ground') {
+        // Move to point
+        game.player.targetPosition = point;
     } else if (target.userData.type === 'npc') {
         // Move to NPC
         game.player.targetPosition = point;

@@ -32,25 +32,32 @@
             pointer-events: none;
         }
 
+        /* RS Style UI */
+        .rs-panel {
+            background-color: #5b4a3e;
+            border: 3px solid #382e26;
+            border-radius: 4px;
+            box-shadow: inset 0 0 10px #2b2319;
+            pointer-events: auto;
+        }
+
         #inventory {
             position: absolute;
             bottom: 10px;
             right: 10px;
-            width: 200px;
-            height: 280px;
-            background-color: #3e3529;
-            border: 2px solid #5d5245;
+            width: 220px;
+            height: 300px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(7, 1fr);
-            gap: 2px;
-            padding: 5px;
-            pointer-events: auto;
+            gap: 4px;
+            padding: 8px;
         }
 
         .inv-slot {
-            background-color: #2b2319;
-            border: 1px solid #1a150f;
+            background-color: #4a3b32;
+            border: 1px solid #2b2319;
+            box-shadow: inset 1px 1px 2px #000;
         }
 
         .inv-item {
@@ -70,52 +77,68 @@
             left: 10px;
             width: 400px;
             height: 150px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border: 1px solid #555;
             color: white;
             font-family: monospace;
             overflow-y: auto;
             padding: 5px;
-            pointer-events: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 2px solid #5b4a3e;
         }
 
         .chat-msg {
             margin: 2px 0;
+            text-shadow: 1px 1px 0 #000;
         }
 
         .chat-msg.system {
-            color: yellow;
+            color: #ffff00;
         }
 
         .chat-msg.action {
-            color: cyan;
+            color: #00ffff;
+        }
+
+        .chat-msg.normal {
+            color: #ffffff;
         }
 
         #xp-tracker {
             position: absolute;
             top: 10px;
             left: 10px;
-            background-color: rgba(0, 0, 0, 0.5);
+            color: #ffff00;
+            padding: 8px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        button {
+            background-color: #5b4a3e;
             color: white;
-            padding: 5px;
-            border: 1px solid #555;
-            pointer-events: auto;
+            border: 2px solid #382e26;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #6d594b;
         }
     </style>
-    <!-- Load Three.js as a global script (UMD) -->
+    <!-- Load Three.js via cdnjs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
 
 <body>
     <div id="ui-container">
-        <div id="xp-tracker">
+        <div id="xp-tracker" class="rs-panel">
             <div>Woodcutting: <span id="xp-wc">1</span></div>
             <div>Mining: <span id="xp-mine">1</span></div>
         </div>
         <button onclick="toggleCustomization()"
             style="position:absolute; top:10px; right:10px; pointer-events:auto;">Customize Character</button>
         <div id="chatbox">Welcome to RuneScape Clone!</div>
-        <div id="inventory">
+        <div id="inventory" class="rs-panel">
             <!-- 28 slots -->
             <div class="inv-slot"></div>
             <div class="inv-slot"></div>
@@ -149,6 +172,107 @@
     </div>
 
     <script>
+        // --- TEXTURE GENERATOR ---
+        const TextureFactory = {
+            createCanvas: function (width, height) {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                return canvas;
+            },
+            createNoise: function (colorBase, colorNoise, scale = 1) {
+                const size = 512; // Higher res textures
+                const canvas = this.createCanvas(size, size);
+                const ctx = canvas.getContext('2d');
+
+                // Fill base
+                ctx.fillStyle = colorBase;
+                ctx.fillRect(0, 0, size, size);
+
+                // Add noise
+                for (let i = 0; i < 10000 * scale; i++) {
+                    const x = Math.random() * size;
+                    const y = Math.random() * size;
+                    const w = Math.random() * 2 * scale;
+                    const h = Math.random() * 2 * scale;
+                    ctx.fillStyle = colorNoise;
+                    ctx.globalAlpha = 0.2;
+                    ctx.fillRect(x, y, w, h);
+                }
+
+                const tex = new THREE.CanvasTexture(canvas);
+                tex.wrapS = THREE.RepeatWrapping;
+                tex.wrapT = THREE.RepeatWrapping;
+                return tex;
+            },
+            createWood: function () {
+                const size = 512;
+                const canvas = this.createCanvas(size, size);
+                const ctx = canvas.getContext('2d');
+
+                ctx.fillStyle = '#5c4033';
+                ctx.fillRect(0, 0, size, size);
+
+                // Grain
+                for (let i = 0; i < 100; i++) {
+                    ctx.strokeStyle = '#3e2b1f';
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = 0.4;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.random() * size, 0);
+                    ctx.bezierCurveTo(Math.random() * size, size / 3, Math.random() * size, size * 2 / 3, Math.random() * size, size);
+                    ctx.stroke();
+                }
+                return new THREE.CanvasTexture(canvas);
+            },
+            createBricks: function () {
+                const size = 512;
+                const canvas = this.createCanvas(size, size);
+                const ctx = canvas.getContext('2d');
+
+                ctx.fillStyle = '#777';
+                ctx.fillRect(0, 0, size, size);
+
+                ctx.strokeStyle = '#444';
+                ctx.lineWidth = 4;
+
+                // Horizontal lines
+                for (let y = 0; y <= size; y += 32) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(size, y); ctx.stroke();
+                }
+                // Vertical lines (staggered)
+                for (let y = 0; y < size; y += 32) {
+                    const offset = (y / 32) % 2 === 0 ? 0 : 16;
+                    for (let x = offset; x <= size; x += 32) {
+                        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 32); ctx.stroke();
+                    }
+                }
+
+                const tex = new THREE.CanvasTexture(canvas);
+                tex.wrapS = THREE.RepeatWrapping;
+                tex.wrapT = THREE.RepeatWrapping;
+                return tex;
+            }
+        };
+
+        // Pre-generate textures
+        const textures = {
+            grass: TextureFactory.createNoise('#2d3623', '#4a5d32', 2),
+            water: TextureFactory.createNoise('#3a6a8a', '#4fa4d4', 2),
+            stone: TextureFactory.createNoise('#555', '#333', 2),
+            wood: TextureFactory.createWood(),
+            leaves: TextureFactory.createNoise('#1e3b1e', '#2f5e2f', 1),
+            wall: TextureFactory.createBricks(),
+            dirt: TextureFactory.createNoise('#5b4a3e', '#3e2b1f', 1),
+            skin: TextureFactory.createNoise('#ffccaa', '#eebb99', 0.5),
+            shirt: TextureFactory.createNoise('#224488', '#112244', 0.5),
+            pants: TextureFactory.createNoise('#333333', '#111111', 0.5)
+        };
+
+        textures.grass.repeat.set(10, 10);
+        textures.water.repeat.set(2, 10);
+        textures.wall.repeat.set(1, 3);
+
         // --- UI MODULE ---
         function addMessage(text, type = "normal") {
             const chatbox = document.getElementById('chatbox');
@@ -166,13 +290,13 @@
 
         function toggleCustomization() {
             const color = prompt("Enter shirt color (hex, e.g. #ff0000):", "#ff0000");
-            if (color && game.player && game.player.mesh) {
-                game.player.mesh.material.color.set(color);
+            if (color && game.player && game.player.torso) {
+                game.player.torso.material.color.set(color);
             }
         }
 
         function addLog() { addItem("Log", "#5c4033"); }
-        function addOre() { addItem("Ore", "#887766"); }
+        function addOre() { addItem("Ore", "#554433"); }
 
         function addItem(name, color) {
             const inventory = document.getElementById('inventory');
@@ -183,10 +307,11 @@
                     item.className = 'inv-item';
                     item.textContent = name;
                     item.style.backgroundColor = color;
-                    item.style.borderRadius = "50%";
-                    item.style.width = "30px";
-                    item.style.height = "30px";
+                    item.style.borderRadius = "4px";
+                    item.style.width = "25px";
+                    item.style.height = "25px";
                     item.style.margin = "auto";
+                    item.style.border = "1px solid rgba(0,0,0,0.5)";
                     slot.appendChild(item);
                     return;
                 }
@@ -222,140 +347,52 @@
             pointer: new THREE.Vector2()
         };
 
-        // --- PLAYER MODULE ---
-        function createPlayer(scene) {
-            const player = {
-                mesh: null, targetPosition: null, speed: 5, state: 'idle'
-            };
-            // Use CylinderGeometry to be safe across versions
-            const geometry = new THREE.CylinderGeometry(0.5, 0.5, 1, 8);
-            const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-            player.mesh = new THREE.Mesh(geometry, material);
-            player.mesh.position.set(0, 1, 0);
-            player.mesh.castShadow = true;
-
-            const headGeo = new THREE.SphereGeometry(0.4, 8, 8);
-            const headMat = new THREE.MeshStandardMaterial({ color: 0xffccaa });
-            const head = new THREE.Mesh(headGeo, headMat);
-            head.position.set(0, 0.8, 0);
-            player.mesh.add(head);
-
-            scene.add(player.mesh);
-            return player;
-        }
-
-        function updatePlayer(player, delta, camera) {
-            if (!player.targetPosition) return;
-            const currentPos = player.mesh.position;
-            const target = player.targetPosition;
-            const direction = new THREE.Vector3().subVectors(target, currentPos);
-            direction.y = 0;
-            const distance = direction.length();
-
-            if (distance > 0.1) {
-                direction.normalize();
-                const moveStep = direction.multiplyScalar(player.speed * delta);
-                if (moveStep.length() > distance) {
-                    currentPos.x = target.x; currentPos.z = target.z;
-                    player.targetPosition = null;
-                } else {
-                    currentPos.add(moveStep);
-                    player.mesh.lookAt(target.x, player.mesh.position.y, target.z);
-                }
-            } else {
-                player.targetPosition = null;
-            }
-            const offset = new THREE.Vector3(10, 10, 10);
-            camera.position.copy(currentPos).add(offset);
-            camera.lookAt(currentPos);
-        }
-
-        // --- NPC MODULE ---
-        function createNPCs(scene, world) {
-            const guide = createNPCMesh(0xffff00);
-            guide.position.set(-5, 0, 0);
-            guide.userData = { type: 'npc', name: 'Guide', dialog: ["Welcome!", "Click trees to chop.", "Click rocks to mine."] };
-            scene.add(guide);
-            world.npcs.push(guide);
-
-            const goblin = createNPCMesh(0x00ff00, 0.7);
-            goblin.position.set(25, 0, 5);
-            goblin.userData = { type: 'npc', name: 'Goblin', dialog: ["Me smash!", "Go away!"] };
-            scene.add(goblin);
-            world.npcs.push(goblin);
-        }
-
-        function createNPCMesh(color, scale = 1) {
-            const group = new THREE.Group();
-            const bodyGeo = new THREE.CylinderGeometry(0.5 * scale, 0.5 * scale, 1 * scale, 8);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: color });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 1 * scale;
-            body.castShadow = true;
-            group.add(body);
-            const headGeo = new THREE.SphereGeometry(0.4 * scale, 8, 8);
-            const headMat = new THREE.MeshStandardMaterial({ color: 0xffccaa });
-            const head = new THREE.Mesh(headGeo, headMat);
-            head.position.y = 1.8 * scale;
-            group.add(head);
-            return group;
-        }
-
-        function interactWithNPC(npc) {
-            addMessage(`${npc.userData.name}: Hello!`, "system");
-            let lineIndex = 0;
-            const lines = npc.userData.dialog;
-            function showNextLine() {
-                if (lineIndex < lines.length) {
-                    addMessage(`${npc.userData.name}: ${lines[lineIndex]}`, "normal");
-                    lineIndex++;
-                    setTimeout(showNextLine, 1500);
-                }
-            }
-            showNextLine();
-        }
-
         // --- WORLD MODULE ---
         function createWorld(scene) {
             const world = { trees: [], rocks: [], npcs: [] };
 
-            const groundGeo = new THREE.PlaneGeometry(100, 100);
-            const groundMat = new THREE.MeshStandardMaterial({ color: 0x5da130 });
+            // Ground
+            const groundGeo = new THREE.PlaneGeometry(100, 100, 64, 64); // More segments for better lighting
+            const groundMat = new THREE.MeshStandardMaterial({ map: textures.grass });
             const ground = new THREE.Mesh(groundGeo, groundMat);
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             ground.name = "ground";
             scene.add(ground);
 
-            const riverGeo = new THREE.PlaneGeometry(20, 100);
-            const riverMat = new THREE.MeshStandardMaterial({ color: 0x0077be });
+            // River
+            const riverGeo = new THREE.PlaneGeometry(20, 100, 32, 32);
+            const riverMat = new THREE.MeshStandardMaterial({ map: textures.water });
             const river = new THREE.Mesh(riverGeo, riverMat);
             river.rotation.x = -Math.PI / 2;
             river.position.set(20, 0.01, 0);
             scene.add(river);
 
-            const bridgeGeo = new THREE.BoxGeometry(10, 0.5, 6);
-            const bridgeMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+            // Bridge
+            const bridgeGeo = new THREE.BoxGeometry(10, 0.2, 6, 10, 1, 5);
+            const bridgeMat = new THREE.MeshStandardMaterial({ map: textures.wood });
             const bridge = new THREE.Mesh(bridgeGeo, bridgeMat);
-            bridge.position.set(20, 0.2, 0);
+            bridge.position.set(20, 0.15, 0);
             scene.add(bridge);
 
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x808080 });
+            // Walls
+            const wallMat = new THREE.MeshStandardMaterial({ map: textures.wall });
             const wall1 = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 30), wallMat); wall1.position.set(-15, 3, 0); scene.add(wall1);
             const wall2 = new THREE.Mesh(new THREE.BoxGeometry(30, 6, 2), wallMat); wall2.position.set(0, 3, -15); scene.add(wall2);
             const wall3 = new THREE.Mesh(new THREE.BoxGeometry(30, 6, 2), wallMat); wall3.position.set(0, 3, 15); scene.add(wall3);
 
-            for (let i = 0; i < 30; i++) {
+            for (let i = 0; i < 40; i++) {
                 const x = (Math.random() - 0.5) * 90;
                 const z = (Math.random() - 0.5) * 90;
                 if ((x > 10 && x < 30) || (x > -20 && x < 20 && z > -20 && z < 20)) continue;
                 const tree = createTree();
                 tree.position.set(x, 0, z);
+                tree.rotation.y = Math.random() * Math.PI;
                 scene.add(tree);
                 world.trees.push(tree);
             }
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 15; i++) {
                 const x = (Math.random() - 0.5) * 90;
                 const z = (Math.random() - 0.5) * 90;
                 if ((x > 10 && x < 30) || (x > -20 && x < 20 && z > -20 && z < 20)) continue;
@@ -367,20 +404,168 @@
             return world;
         }
 
+        function createPlayer(scene) {
+            const player = createCharacterMesh(0xff0000, 1); // Red shirt
+            player.position.set(0, 0, 0);
+            player.userData.speed = 5;
+            player.userData.targetPosition = null;
+            player.userData.state = 'idle';
+            player.userData.animationTime = 0;
+            player.userData.interactionTarget = null;
+
+            scene.add(player);
+
+            return {
+                mesh: player,
+                targetPosition: null,
+                speed: 5,
+                state: 'idle',
+                animationTime: 0,
+                interactionTarget: null
+            };
+        }
+        // Camera rotation controls
+        const cameraControls = {
+            rotateLeft: false,
+            rotateRight: false,
+            angle: 0, // Current rotation angle around player
+            radius: 14.14 // Distance from player (sqrt(10^2 + 10^2))
+        };
+
+        // Keyboard event listeners
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                cameraControls.rotateLeft = true;
+                e.preventDefault();
+            } else if (e.key === 'ArrowRight') {
+                cameraControls.rotateRight = true;
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') {
+                cameraControls.rotateLeft = false;
+            } else if (e.key === 'ArrowRight') {
+                cameraControls.rotateRight = false;
+            }
+        });
+
+        function updateCamera(player, camera, delta) {
+            const rotationSpeed = 2; // radians per second
+
+            // Rotate camera based on arrow keys
+            if (cameraControls.rotateLeft) {
+                cameraControls.angle += rotationSpeed * delta;
+            }
+            if (cameraControls.rotateRight) {
+                cameraControls.angle -= rotationSpeed * delta;
+            }
+
+            // Calculate camera position around player
+            const playerPos = player.mesh.position;
+            const offsetX = Math.sin(cameraControls.angle) * cameraControls.radius;
+            const offsetZ = Math.cos(cameraControls.angle) * cameraControls.radius;
+
+            camera.position.set(
+                playerPos.x + offsetX,
+                playerPos.y + 10, // Height above player
+                playerPos.z + offsetZ
+            );
+            camera.lookAt(playerPos);
+        }
+        function updatePlayer(player, delta, camera) {
+            if (!player.mesh.userData.animationTime) player.mesh.userData.animationTime = 0;
+            player.mesh.userData.animationTime += delta;
+
+            if (player.targetPosition) {
+                const currentPos = player.mesh.position;
+                const target = player.targetPosition;
+                const speed = player.speed;
+
+                const direction = new THREE.Vector3().subVectors(target, currentPos);
+                direction.y = 0;
+                const distance = direction.length();
+
+                // Stop further away if we have an interaction target
+                const stopDistance = player.interactionTarget ? 1.5 : 0.1;
+
+                if (distance > stopDistance) {
+                    direction.normalize();
+                    const moveStep = direction.multiplyScalar(speed * delta);
+
+                    if (moveStep.length() > distance - stopDistance) {
+                        currentPos.x = target.x;
+                        currentPos.z = target.z;
+                        player.targetPosition = null;
+                        player.state = 'idle';
+
+                        // Trigger interaction if we have a target
+                        if (player.interactionTarget) {
+                            if (player.interactionTarget.userData.type === 'resource') {
+                                gatherResource(player.interactionTarget);
+                            } else if (player.interactionTarget.userData.type === 'npc') {
+                                interactWithNPC(player.interactionTarget);
+                            }
+                            player.interactionTarget = null;
+                        }
+                    } else {
+                        currentPos.add(moveStep);
+                        player.state = 'moving';
+                        player.mesh.lookAt(target.x, currentPos.y, target.z);
+                    }
+                } else {
+                    player.targetPosition = null;
+                    player.state = 'idle';
+
+                    // Trigger interaction
+                    if (player.interactionTarget) {
+                        if (player.interactionTarget.userData.type === 'resource') {
+                            gatherResource(player.interactionTarget);
+                        } else if (player.interactionTarget.userData.type === 'npc') {
+                            interactWithNPC(player.interactionTarget);
+                        }
+                        player.interactionTarget = null;
+                    }
+                }
+            }
+
+            // Update camera to follow player with rotation
+            updateCamera(player, camera, delta);
+
+            // Animate player
+            animateCharacter(player.mesh, player.state, player.mesh.userData.animationTime);
+        }
+
         function createTree() {
             const group = new THREE.Group();
             group.name = "tree";
             group.userData = { type: 'resource', resourceType: 'wood', xp: 25, name: 'Tree' };
-            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.5, 6);
-            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c4033 });
+
+            // Trunk - High poly cylinder
+            const trunkGeo = new THREE.CylinderGeometry(0.3, 0.5, 2, 16);
+            const trunkMat = new THREE.MeshStandardMaterial({ map: textures.wood });
             const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.y = 0.75;
+            trunk.position.y = 1;
             group.add(trunk);
-            const leavesGeo = new THREE.ConeGeometry(1.5, 3, 8);
-            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x228b22 });
-            const leaves = new THREE.Mesh(leavesGeo, leavesMat);
-            leaves.position.y = 2.25;
-            group.add(leaves);
+
+            // Leaves - High poly spheres
+            const leavesMat = new THREE.MeshStandardMaterial({ map: textures.leaves });
+            const leafGeo = new THREE.SphereGeometry(1.2, 16, 16); // Smoother leaves
+
+            const leaf1 = new THREE.Mesh(leafGeo, leavesMat);
+            leaf1.position.y = 2.5;
+            group.add(leaf1);
+
+            const leaf2 = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 16), leavesMat);
+            leaf2.position.set(0.8, 2.0, 0);
+            group.add(leaf2);
+
+            const leaf3 = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 16), leavesMat);
+            leaf3.position.set(-0.8, 2.2, 0.5);
+            group.add(leaf3);
+
+            group.traverse(c => { c.castShadow = true; c.receiveShadow = true; });
             return group;
         }
 
@@ -388,22 +573,357 @@
             const group = new THREE.Group();
             group.name = "rock";
             group.userData = { type: 'resource', resourceType: 'ore', xp: 35, name: 'Copper Rock' };
-            const geo = new THREE.DodecahedronGeometry(0.8);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x887766 });
+
+            // Base Rock - High poly dodecahedron (detail level 1 adds vertices)
+            const geo = new THREE.DodecahedronGeometry(0.8, 1);
+            const mat = new THREE.MeshStandardMaterial({ map: textures.stone, roughness: 0.9 });
             const rock = new THREE.Mesh(geo, mat);
-            rock.position.y = 0.5;
+            rock.position.y = 0.4;
             rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            rock.scale.set(1.2, 0.8, 1.2);
             group.add(rock);
+
+            // Veins (Copper)
+            const veinMat = new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.4, metalness: 0.8 });
+            for (let i = 0; i < 3; i++) {
+                const vein = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), veinMat); // Spherical veins
+                vein.position.set((Math.random() - 0.5), 0.6, (Math.random() - 0.5));
+                group.add(vein);
+            }
+
+            group.traverse(c => { c.castShadow = true; c.receiveShadow = true; });
             return group;
         }
 
-        function updateWorld(world, delta) { }
+        function updateWorld(world, delta) {
+            world.npcs.forEach(npc => {
+                // Simple wandering logic
+                if (!npc.userData.target) {
+                    if (Math.random() < 0.01) {
+                        const range = 5;
+                        npc.userData.target = new THREE.Vector3(
+                            npc.position.x + (Math.random() - 0.5) * range,
+                            0,
+                            npc.position.z + (Math.random() - 0.5) * range
+                        );
+                    }
+                    npc.userData.state = 'idle';
+                } else {
+                    const dir = new THREE.Vector3().subVectors(npc.userData.target, npc.position);
+                    dir.y = 0;
+                    const dist = dir.length();
+                    if (dist < 0.1) {
+                        npc.userData.target = null;
+                        npc.userData.state = 'idle';
+                    } else {
+                        dir.normalize();
+                        npc.position.add(dir.multiplyScalar(2 * delta));
+                        npc.lookAt(npc.userData.target);
+                        npc.userData.state = 'moving';
+                    }
+                }
+
+                // Animation
+                if (!npc.userData.animationTime) npc.userData.animationTime = 0;
+                npc.userData.animationTime += delta;
+                animateCharacter(npc, npc.userData.state || 'idle', npc.userData.animationTime);
+            });
+        }
+
+        // --- CHARACTER MODEL & ANIMATION ---
+        function createCharacterMesh(color, scale = 1) {
+            const group = new THREE.Group();
+            group.userData = { parts: {} }; // Store references to body parts
+
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xffccaa });
+
+            // Torso
+            const torsoGeo = new THREE.BoxGeometry(0.5 * scale, 0.7 * scale, 0.3 * scale);
+            const torso = new THREE.Mesh(torsoGeo, material);
+            torso.position.y = 0.7 * scale;
+            torso.castShadow = true;
+            group.add(torso);
+            group.userData.parts.torso = torso;
+
+            // Head
+            const headGeo = new THREE.BoxGeometry(0.3 * scale, 0.3 * scale, 0.3 * scale);
+            const head = new THREE.Mesh(headGeo, skinMaterial);
+            head.position.y = 0.5 * scale; // Relative to torso
+            torso.add(head);
+            group.userData.parts.head = head;
+
+            // Arms
+            const armGeo = new THREE.BoxGeometry(0.15 * scale, 0.6 * scale, 0.15 * scale);
+
+            const leftArmGroup = new THREE.Group();
+            leftArmGroup.position.set(0.35 * scale, 0.3 * scale, 0);
+            torso.add(leftArmGroup);
+            const leftArm = new THREE.Mesh(armGeo, material);
+            leftArm.position.y = -0.2 * scale;
+            leftArmGroup.add(leftArm);
+            group.userData.parts.leftArm = leftArmGroup;
+
+            const rightArmGroup = new THREE.Group();
+            rightArmGroup.position.set(-0.35 * scale, 0.3 * scale, 0);
+            torso.add(rightArmGroup);
+            const rightArm = new THREE.Mesh(armGeo, material);
+            rightArm.position.y = -0.2 * scale;
+            rightArmGroup.add(rightArm);
+            group.userData.parts.rightArm = rightArmGroup;
+
+            // Legs
+            const legGeo = new THREE.BoxGeometry(0.18 * scale, 0.7 * scale, 0.18 * scale);
+            const pantsMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+
+            const leftLegGroup = new THREE.Group();
+            leftLegGroup.position.set(0.15 * scale, -0.35 * scale, 0);
+            torso.add(leftLegGroup);
+            const leftLeg = new THREE.Mesh(legGeo, pantsMaterial);
+            leftLeg.position.y = -0.35 * scale;
+            leftLegGroup.add(leftLeg);
+            group.userData.parts.leftLeg = leftLegGroup;
+
+            const rightLegGroup = new THREE.Group();
+            rightLegGroup.position.set(-0.15 * scale, -0.35 * scale, 0);
+            torso.add(rightLegGroup);
+            const rightLeg = new THREE.Mesh(legGeo, pantsMaterial);
+            rightLeg.position.y = -0.35 * scale;
+            rightLegGroup.add(rightLeg);
+            group.userData.parts.rightLeg = rightLegGroup;
+
+            return group;
+        }
+
+        const npcColors = [0xffff00, 0x00ff00, 0xff00ff, 0x00ffff];
+
+        function createNPCs(scene, world) {
+            // Guide NPC
+            const guide = createCharacterMesh(0xffff00, 1); // Yellow shirt
+            guide.position.set(-5, 0, 0); // Inside castle area
+            guide.userData.type = 'npc';
+            guide.userData.name = 'Guide';
+            guide.userData.dialog = [
+                "Welcome to RuneScape Clone!",
+                "Click on trees to cut wood.",
+                "Click on rocks to mine ore.",
+                "Good luck!"
+            ];
+            scene.add(guide);
+            world.npcs.push(guide);
+
+            // Goblin NPC
+            const goblin = createCharacterMesh(0x00ff00, 0.7); // Green, smaller
+            goblin.position.set(25, 0, 5); // Across the river
+            goblin.userData.type = 'npc';
+            goblin.userData.name = 'Goblin';
+            goblin.userData.dialog = ["Me smash!", "Go away human!"];
+            scene.add(goblin);
+            world.npcs.push(goblin);
+        }
+
+        function interactWithNPC(npc) {
+            addMessage(`You talk to the ${npc.userData.name}.`, "action");
+            const dialog = npc.userData.dialog;
+            const line = dialog[Math.floor(Math.random() * dialog.length)];
+            setTimeout(() => {
+                addMessage(`${npc.userData.name}: "${line}"`, "system");
+            }, 500);
+        }
 
         // --- INTERACTION MODULE ---
         function setupInteraction(game) {
             window.addEventListener('pointerdown', (event) => onPointerDown(event, game));
         }
+        function onPointerDown(event, game) {
+            if (event.target.tagName === 'BUTTON') return; // Ignore UI clicks
+            game.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+            game.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            const leaf3 = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 16), leavesMat);
+            leaf3.position.set(-0.8, 2.2, 0.5);
+            group.add(leaf3);
 
+            group.traverse(c => { c.castShadow = true; c.receiveShadow = true; });
+            return group;
+        }
+
+        function createRock() {
+            const group = new THREE.Group();
+            group.name = "rock";
+            group.userData = { type: 'resource', resourceType: 'ore', xp: 35, name: 'Copper Rock' };
+
+            // Base Rock - High poly dodecahedron (detail level 1 adds vertices)
+            const geo = new THREE.DodecahedronGeometry(0.8, 1);
+            const mat = new THREE.MeshStandardMaterial({ map: textures.stone, roughness: 0.9 });
+            const rock = new THREE.Mesh(geo, mat);
+            rock.position.y = 0.4;
+            rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            rock.scale.set(1.2, 0.8, 1.2);
+            group.add(rock);
+
+            // Veins (Copper)
+            const veinMat = new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.4, metalness: 0.8 });
+            for (let i = 0; i < 3; i++) {
+                const vein = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), veinMat); // Spherical veins
+                vein.position.set((Math.random() - 0.5), 0.6, (Math.random() - 0.5));
+                group.add(vein);
+            }
+
+            group.traverse(c => { c.castShadow = true; c.receiveShadow = true; });
+            return group;
+        }
+
+        function updateWorld(world, delta) {
+            world.npcs.forEach(npc => {
+                // Simple wandering logic
+                if (!npc.userData.target) {
+                    if (Math.random() < 0.01) {
+                        const range = 5;
+                        npc.userData.target = new THREE.Vector3(
+                            npc.position.x + (Math.random() - 0.5) * range,
+                            0,
+                            npc.position.z + (Math.random() - 0.5) * range
+                        );
+                    }
+                    npc.userData.state = 'idle';
+                } else {
+                    const dir = new THREE.Vector3().subVectors(npc.userData.target, npc.position);
+                    dir.y = 0;
+                    const dist = dir.length();
+                    if (dist < 0.1) {
+                        npc.userData.target = null;
+                        npc.userData.state = 'idle';
+                    } else {
+                        dir.normalize();
+                        npc.position.add(dir.multiplyScalar(2 * delta));
+                        npc.lookAt(npc.userData.target);
+                        npc.userData.state = 'moving';
+                    }
+                }
+
+                // Animation
+                if (!npc.userData.animationTime) npc.userData.animationTime = 0;
+                npc.userData.animationTime += delta;
+                animateCharacter(npc, npc.userData.state || 'idle', npc.userData.animationTime);
+            });
+        }
+
+        // --- CHARACTER MODEL & ANIMATION ---
+        function createCharacterMesh(color, scale = 1) {
+            const group = new THREE.Group();
+            group.userData = { parts: {} }; // Store references to body parts
+
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xffccaa });
+
+            // Torso
+            const torsoGeo = new THREE.BoxGeometry(0.5 * scale, 0.7 * scale, 0.3 * scale);
+            const torso = new THREE.Mesh(torsoGeo, material);
+            torso.position.y = 0.7 * scale;
+            torso.castShadow = true;
+            group.add(torso);
+            group.userData.parts.torso = torso;
+
+            // Head
+            const headGeo = new THREE.BoxGeometry(0.3 * scale, 0.3 * scale, 0.3 * scale);
+            const head = new THREE.Mesh(headGeo, skinMaterial);
+            head.position.y = 0.5 * scale; // Relative to torso
+            torso.add(head);
+            group.userData.parts.head = head;
+
+            // Arms
+            const armGeo = new THREE.BoxGeometry(0.15 * scale, 0.6 * scale, 0.15 * scale);
+
+            const leftArmGroup = new THREE.Group();
+            leftArmGroup.position.set(0.35 * scale, 0.3 * scale, 0);
+            torso.add(leftArmGroup);
+            const leftArm = new THREE.Mesh(armGeo, material);
+            leftArm.position.y = -0.2 * scale;
+            leftArmGroup.add(leftArm);
+            group.userData.parts.leftArm = leftArmGroup;
+
+            const rightArmGroup = new THREE.Group();
+            rightArmGroup.position.set(-0.35 * scale, 0.3 * scale, 0);
+            torso.add(rightArmGroup);
+            const rightArm = new THREE.Mesh(armGeo, material);
+            rightArm.position.y = -0.2 * scale;
+            rightArmGroup.add(rightArm);
+            group.userData.parts.rightArm = rightArmGroup;
+
+            // Legs
+            const legGeo = new THREE.BoxGeometry(0.18 * scale, 0.7 * scale, 0.18 * scale);
+            const pantsMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+
+            const leftLegGroup = new THREE.Group();
+            leftLegGroup.position.set(0.15 * scale, -0.35 * scale, 0);
+            torso.add(leftLegGroup);
+            const leftLeg = new THREE.Mesh(legGeo, pantsMaterial);
+            leftLeg.position.y = -0.35 * scale;
+            leftLegGroup.add(leftLeg);
+            group.userData.parts.leftLeg = leftLegGroup;
+
+            const rightLegGroup = new THREE.Group();
+            rightLegGroup.position.set(-0.15 * scale, -0.35 * scale, 0);
+            torso.add(rightLegGroup);
+            const rightLeg = new THREE.Mesh(legGeo, pantsMaterial);
+            rightLeg.position.y = -0.35 * scale;
+            rightLegGroup.add(rightLeg);
+            group.userData.parts.rightLeg = rightLegGroup;
+
+            return group;
+        }
+
+        function animateCharacter(mesh, state, time) {
+            const parts = mesh.userData.parts;
+            if (!parts) return;
+
+            // Reset rotations
+            parts.leftArm.rotation.x = 0;
+            parts.rightArm.rotation.x = 0;
+            parts.leftLeg.rotation.x = 0;
+            parts.rightLeg.rotation.x = 0;
+            parts.torso.position.y = 0.7; // Reset height
+
+            if (state === 'idle') {
+                // Breathing / Bobbing
+                parts.torso.position.y = 0.7 + Math.sin(time * 2) * 0.02;
+                parts.leftArm.rotation.z = Math.sin(time * 1.5) * 0.05 + 0.1;
+                parts.rightArm.rotation.z = -Math.sin(time * 1.5) * 0.05 - 0.1;
+            } else if (state === 'moving') {
+                // Walking
+                const speed = 10;
+                const armAmp = 0.8;
+                const legAmp = 1.0;
+
+                parts.leftArm.rotation.x = Math.sin(time * speed) * armAmp;
+                parts.rightArm.rotation.x = Math.sin(time * speed + Math.PI) * armAmp;
+                parts.leftLeg.rotation.x = Math.sin(time * speed + Math.PI) * legAmp;
+                parts.rightLeg.rotation.x = Math.sin(time * speed) * legAmp;
+            } else if (state === 'chopping' || state === 'mining') {
+                // Chopping/Mining animation - swing arms
+                const swingSpeed = 6;
+                const swingAmp = 1.2;
+
+                // Both arms swing together for chopping
+                const swing = Math.sin(time * swingSpeed) * swingAmp;
+                parts.leftArm.rotation.x = -Math.PI / 4 + swing;
+                parts.rightArm.rotation.x = -Math.PI / 4 + swing;
+            }
+        }
+
+        function interactWithNPC(npc) {
+            addMessage(`You talk to the ${npc.userData.name}.`, "action");
+            const dialog = npc.userData.dialog;
+            const line = dialog[Math.floor(Math.random() * dialog.length)];
+            setTimeout(() => {
+                addMessage(`${npc.userData.name}: "${line}"`, "system");
+            }, 500);
+        }
+
+        // --- INTERACTION MODULE ---
+        function setupInteraction(game) {
+            window.addEventListener('pointerdown', (event) => onPointerDown(event, game));
+        }
         function onPointerDown(event, game) {
             if (event.target.tagName === 'BUTTON') return; // Ignore UI clicks
             game.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -411,56 +931,117 @@
             game.raycaster.setFromCamera(game.pointer, game.camera);
             const intersects = game.raycaster.intersectObjects(game.scene.children, true);
 
+            console.log('Total intersections:', intersects.length);
+
             if (intersects.length > 0) {
                 let target = null;
                 let point = null;
+
+                // First, check ALL intersections for resources/NPCs
                 for (let hit of intersects) {
+                    console.log('Checking object:', hit.object.name, 'userData:', hit.object.userData);
                     let obj = hit.object;
-                    while (obj.parent && obj.parent.type !== 'Scene') {
-                        if (obj.userData && (obj.userData.type === 'resource' || obj.userData.type === 'npc')) {
-                            target = obj; break;
-                        }
-                        obj = obj.parent;
+
+                    // Check the object itself first
+                    if (obj.userData && (obj.userData.type === 'resource' || obj.userData.type === 'npc')) {
+                        target = obj;
+                        point = hit.point;
+                        console.log('Found resource/NPC on object itself!');
+                        break;
                     }
-                    if (target) { point = hit.point; break; }
-                    if (hit.object.name === 'ground') { target = hit.object; point = hit.point; break; }
+
+                    // Traverse up the parent chain to find resource/NPC groups
+                    while (obj.parent && obj.parent.type !== 'Scene') {
+                        obj = obj.parent;
+                        console.log('Checking parent:', obj.name, 'userData:', obj.userData);
+                        if (obj.userData && (obj.userData.type === 'resource' || obj.userData.type === 'npc')) {
+                            target = obj;
+                            point = hit.point;
+                            console.log('Found resource/NPC on parent!');
+                            break;
+                        }
+                    }
+                    // If we found a resource/NPC, stop searching
+                    if (target) break;
                 }
+
+                // If no resource/NPC found, check for ground
+                if (!target) {
+                    for (let hit of intersects) {
+                        if (hit.object.name === 'ground') {
+                            target = hit.object;
+                            point = hit.point;
+                            console.log('Using ground as target');
+                            break;
+                        }
+                    }
+                }
+
+                console.log('Final target:', target ? target.name : 'none', 'type:', target?.userData?.type);
                 if (target) handleInteraction(target, point, game);
             }
         }
-
         function handleInteraction(target, point, game) {
             if (target.name === 'ground') {
                 game.player.targetPosition = point;
+                game.player.interactionTarget = null; // Cancel any pending interaction
                 addMessage("Walking...", "action");
             } else if (target.userData.type === 'resource') {
                 game.player.targetPosition = point;
-                setTimeout(() => {
-                    if (game.player.mesh.position.distanceTo(point) < 3.0) gatherResource(target);
-                }, 1000);
+                game.player.interactionTarget = target; // Set the tree as interaction target
+                addMessage("Walking to resource...", "action");
             } else if (target.userData.type === 'npc') {
                 game.player.targetPosition = point;
-                setTimeout(() => {
-                    if (game.player.mesh.position.distanceTo(point) < 3.0) interactWithNPC(target);
-                }, 1000);
+                game.player.interactionTarget = target; // Set the NPC as interaction target
+                addMessage("Walking to NPC...", "action");
             }
         }
 
         function gatherResource(obj) {
             const type = obj.userData.resourceType;
-            addMessage(`You swing at the ${obj.userData.name}...`, "action");
-            setTimeout(() => {
-                if (type === 'wood') { addMessage("You get logs.", "system"); addLog(); addXP('woodcutting', obj.userData.xp); }
-                else if (type === 'ore') { addMessage("You get ore.", "system"); addOre(); addXP('mining', obj.userData.xp); }
-                obj.visible = false;
-                setTimeout(() => { obj.visible = true; }, 5000);
-            }, 1000);
+            if (type === 'wood') {
+                game.player.state = 'chopping';
+                addMessage(`You swing your axe at the ${obj.userData.name}...`, "action");
+            } else if (type === 'ore') {
+                game.player.state = 'mining';
+                addMessage(`You swing your pickaxe at the ${obj.userData.name}...`, "action");
+            }
+
+            // Random number of swings (3 to 6)
+            const swings = Math.floor(Math.random() * 4) + 3;
+            const swingTime = 1000; // 1 second per swing
+
+            let currentSwing = 0;
+            const chopInterval = setInterval(() => {
+                currentSwing++;
+                if (currentSwing >= swings) {
+                    clearInterval(chopInterval);
+                    game.player.state = 'idle';
+
+                    if (type === 'wood') {
+                        addMessage("You get some logs.", "system");
+                        addLog();
+                        addXP('woodcutting', obj.userData.xp);
+                    } else if (type === 'ore') {
+                        addMessage("You get some ore.", "system");
+                        addOre();
+                        addXP('mining', obj.userData.xp);
+                    }
+
+                    // Hide and Respawn
+                    obj.visible = false;
+                    setTimeout(() => {
+                        obj.visible = true;
+                    }, 5000 + Math.random() * 5000); // 5-10 seconds respawn
+                }
+            }, swingTime);
         }
 
         // --- MAIN INIT ---
         function init() {
             game.scene = new THREE.Scene();
             game.scene.background = new THREE.Color(0x87CEEB);
+            game.scene.fog = new THREE.Fog(0x87CEEB, 15, 60);
 
             const aspect = window.innerWidth / window.innerHeight;
             game.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
@@ -470,13 +1051,16 @@
             game.renderer = new THREE.WebGLRenderer({ antialias: true });
             game.renderer.setSize(window.innerWidth, window.innerHeight);
             game.renderer.shadowMap.enabled = true;
+            game.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(game.renderer.domElement);
 
             const ambient = new THREE.AmbientLight(0xffffff, 0.6);
             game.scene.add(ambient);
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight.position.set(20, 20, 10);
+            dirLight.position.set(20, 30, 10);
             dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
             game.scene.add(dirLight);
 
             game.world = createWorld(game.scene);
@@ -503,6 +1087,57 @@
         // Start
         init();
     </script>
+</body>
+
+</html> game.scene = new THREE.Scene();
+game.scene.background = new THREE.Color(0x87CEEB);
+game.scene.fog = new THREE.Fog(0x87CEEB, 15, 60);
+
+const aspect = window.innerWidth / window.innerHeight;
+game.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
+game.camera.position.set(10, 10, 10);
+game.camera.lookAt(0, 0, 0);
+
+game.renderer = new THREE.WebGLRenderer({ antialias: true });
+game.renderer.setSize(window.innerWidth, window.innerHeight);
+game.renderer.shadowMap.enabled = true;
+game.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(game.renderer.domElement);
+
+const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+game.scene.add(ambient);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(20, 30, 10);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.width = 2048;
+dirLight.shadow.mapSize.height = 2048;
+game.scene.add(dirLight);
+
+game.world = createWorld(game.scene);
+createNPCs(game.scene, game.world);
+game.player = createPlayer(game.scene);
+setupInteraction(game);
+
+window.addEventListener('resize', () => {
+game.camera.aspect = window.innerWidth / window.innerHeight;
+game.camera.updateProjectionMatrix();
+game.renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+animate();
+
+
+function animate() {
+requestAnimationFrame(animate);
+const delta = game.clock.getDelta();
+if (game.player) updatePlayer(game.player, delta, game.camera);
+game.renderer.render(game.scene, game.camera);
+}
+
+
+// Start
+init();
+</script>
 </body>
 
 </html>
