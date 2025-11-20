@@ -389,12 +389,29 @@
                     new THREE.BoxGeometry(seg.width, 0.2, seg.length),
                     waterMat
                 );
-                riverPart.position.set(seg.x, 0.05, seg.z);
+                riverPart.position.set(seg.x, -0.3, seg.z);
                 riverPart.rotation.y = seg.rotation;
                 riverPart.receiveShadow = true;
                 riverPart.name = 'river'; // Mark as river for collision detection
                 scene.add(riverPart);
                 world.river.push(riverPart); // Store river segments
+            });
+
+            // Create riverbed (carved ground channel)
+            const riverbedMat = new THREE.MeshStandardMaterial({
+                map: textures.stone,
+                color: 0x8b7355 // Brownish color for riverbed
+            });
+
+            riverSegments.forEach(seg => {
+                const riverbed = new THREE.Mesh(
+                    new THREE.BoxGeometry(seg.width + 2, 0.5, seg.length + 2),
+                    riverbedMat
+                );
+                riverbed.position.set(seg.x, -0.4, seg.z);
+                riverbed.rotation.y = seg.rotation;
+                riverbed.receiveShadow = true;
+                scene.add(riverbed);
             });
 
             // Bridge - positioned over the middle of the river
@@ -653,6 +670,16 @@
                         player.interactionTarget = null;
                     }
                 }
+            }
+
+            // Adjust player height for bridge
+            if (player.mesh.position.x > 16 && player.mesh.position.x < 24 &&
+                player.mesh.position.z > -3 && player.mesh.position.z < 3) {
+                // On bridge - raise player slightly
+                player.mesh.position.y = 0.5;
+            } else {
+                // On ground - normal height
+                player.mesh.position.y = 0;
             }
 
             // Update camera to follow player with rotation
