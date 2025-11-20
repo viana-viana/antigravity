@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RuneScape Inspired Single Player</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+</head>
+<body>
+    <div id="ui">
+        <div id="xp-panel" class="rs-panel">
+            <h2>Skills</h2>
+            <div id="skills-list" aria-live="polite"></div>
+        </div>
+
+        <div id="chatbox" class="rs-panel">
+            <div class="chat-msg system">Welcome to Gielinor (offline edition)!</div>
+        </div>
+
+        <div id="inventory" class="rs-panel" aria-label="Inventory slots"></div>
+
+        <button id="customize-btn" class="rs-button">Customize Character</button>
+
+        <div id="customization-modal" class="modal hidden" role="dialog" aria-modal="true">
+            <div class="modal-content rs-panel">
+                <header>
+                    <h3>Character Customization</h3>
+                    <button type="button" id="customization-close" class="rs-button small">×</button>
+                </header>
+                <form id="customization-form">
+                    <label>
+                        Hair Style
+                        <select id="hair-style">
+                            <option value="short">Short</option>
+                            <option value="mohawk">Mohawk</option>
+                            <option value="pony">Ponytail</option>
+                        </select>
+                    </label>
+                    <label>
+                        Hair Color
+                        <input type="color" id="hair-color" value="#3b2612" />
+                    </label>
+                    <label>
+                        Torso Color
+                        <input type="color" id="torso-color" value="#b03030" />
+                    </label>
+                    <label>
+                        Leg Color
+                        <input type="color" id="leg-color" value="#333333" />
+                    </label>
+                    <div class="modal-actions">
+                        <button type="submit" class="rs-button">Apply</button>
+                        <button type="button" id="customization-cancel" class="rs-button secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/game.js"></script>
+</body>
+</html>
+
