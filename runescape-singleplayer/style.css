@@ -1,0 +1,282 @@
+:root {
+    font-family: "Verdana", sans-serif;
+    background-color: #000;
+    color: #fff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+}
+
+#ui {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.rs-panel {
+    background-color: #4f3d30cc;
+    border: 3px solid #2b231a;
+    border-radius: 4px;
+    padding: 8px;
+    box-shadow: inset 0 0 12px #1c140e;
+    pointer-events: auto;
+}
+
+#xp-panel {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 270px;
+    color: #ffec85;
+    text-shadow: 1px 1px 0 #000;
+}
+
+#xp-panel h2 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #fff2a8;
+}
+
+#skills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skill-row {
+    display: flex;
+    align-items: center;
+    padding: 6px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(0, 0, 0, 0.6);
+    border-radius: 4px;
+    gap: 8px;
+}
+
+.skill-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.skill-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.skill-info {
+    flex: 1;
+}
+
+.skill-info .label {
+    font-size: 13px;
+}
+
+.skill-info .level {
+    font-size: 12px;
+    color: #fff;
+}
+
+.skill-progress {
+    position: relative;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.12);
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.skill-progress .fill {
+    position: absolute;
+    inset: 0;
+    width: 30%;
+    border-radius: 3px;
+}
+
+.skill-xp {
+    font-size: 11px;
+    color: #dcdcdc;
+    margin-top: 2px;
+}
+
+#chatbox {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    width: 360px;
+    max-height: 180px;
+    overflow-y: auto;
+    font-family: "Courier New", monospace;
+    font-size: 13px;
+}
+
+.chat-msg {
+    margin-bottom: 4px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.chat-msg.system {
+    color: #ffff7b;
+}
+
+.chat-msg.action {
+    color: #5defe7;
+}
+
+.chat-msg.normal {
+    color: #fff;
+}
+
+#inventory {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 230px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.inv-slot {
+    width: 48px;
+    height: 48px;
+    border: 1px solid #000;
+    background-color: #34281f;
+    box-shadow: inset 1px 1px 3px #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #fff;
+}
+
+.inv-slot .item {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    padding: 2px;
+    text-align: center;
+}
+
+#customize-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    width: 320px;
+    max-width: 90vw;
+    pointer-events: auto;
+}
+
+.modal-content header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.modal-content h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+#customization-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#customization-form label {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    gap: 4px;
+}
+
+select,
+input[type="color"] {
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #2b231a;
+    background-color: #2b231a;
+    color: #fff;
+    font-family: inherit;
+}
+
+input[type="color"] {
+    height: 32px;
+    padding: 0;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.rs-button.small {
+    padding: 2px 8px;
+}
+
+.rs-button.secondary {
+    background-color: #444;
+    border-color: #222;
+}
+
+.rs-button.secondary:hover {
+    background-color: #555;
+}
+
+.rs-button {
+    background-color: #5b4a3e;
+    color: #fff;
+    border: 2px solid #382e26;
+    padding: 8px 16px;
+    font-weight: bold;
+    pointer-events: auto;
+    cursor: pointer;
+    box-shadow: 0 0 6px #000;
+}
+
+.rs-button:hover {
+    background-color: #6d5748;
+}
+
