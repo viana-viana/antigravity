@@ -34,22 +34,42 @@ namespace Mahjong.Unity
             Vector3.back
         };
 
+        [Header("References")]
+        public MobileInput InputManager;
+        public UIManager UIManager;
+
         void Start()
         {
             _gameState = new GameState();
             _gameState.InitializeGame();
             
-            TileVisual.OnTileClicked += HandleTileClicked;
+            // Subscribe to Mobile Input
+            if (InputManager != null)
+            {
+                InputManager.OnTileConfirmed += HandleTileDiscard;
+                InputManager.OnTileSelected += HandleTileSelected;
+            }
             
             RefreshBoard();
         }
 
         void OnDestroy()
         {
-            TileVisual.OnTileClicked -= HandleTileClicked;
+            if (InputManager != null)
+            {
+                InputManager.OnTileConfirmed -= HandleTileDiscard;
+                InputManager.OnTileSelected -= HandleTileSelected;
+            }
         }
 
-        private void HandleTileClicked(TileVisual visual)
+        private void HandleTileSelected(TileVisual visual)
+        {
+            // Optional: Pop the tile up visually to show selection
+            // visual.transform.localPosition += Vector3.up * 0.2f;
+            Debug.Log($"Selected: {visual.TileData}");
+        }
+
+        private void HandleTileDiscard(TileVisual visual)
         {
             // Only allow human player (Index 0) to discard on their turn
             if (_gameState.CurrentTurn == 0)

@@ -10,8 +10,8 @@ namespace Mahjong.Unity
         public TextMesh Label; // Assign in Inspector
         public MeshRenderer Renderer; // Assign in Inspector
 
-        // Event for when this tile is clicked
-        public static event Action<TileVisual> OnTileClicked;
+        // Event for when this tile is clicked - REMOVED for MobileInput
+        // public static event Action<TileVisual> OnTileClicked;
 
         public void Setup(Tile tile)
         {
@@ -33,9 +33,7 @@ namespace Mahjong.Unity
             }
         }
 
-        private void OnMouseDown()
-        {
-            OnTileClicked?.Invoke(this);
-        }
+        // OnMouseDown Removed - handled by MobileInput Raycast
+
     }
 }
