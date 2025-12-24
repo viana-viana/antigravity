@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RS3 Companion</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Using system fonts, no external font load needed for that "native" feel -->
+</head>
+
+<body>
+    <div class="background-blur"></div>
+
+    <div class="app-container">
+        <header class="glass-panel">
+            <div class="header-content">
+                <h1>RS3 Companion</h1>
+                <div class="user-summary">
+                    <span id="total-level">Total Level: ...</span>
+                    <button id="settings-btn" class="icon-btn" aria-label="Settings">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <nav class="view-tabs">
+            <button class="nav-btn active" data-target="skills-view">Skills</button>
+            <button class="nav-btn" data-target="dashboard-view">Dashboard</button>
+            <button class="nav-btn" data-target="quests-view">Quests</button>
+        </nav>
+
+        <main>
+            <!-- View: Skills -->
+            <div id="skills-view" class="view active">
+                <div id="skills-grid" class="skills-grid">
+                    <!-- Skills populated by JS -->
+                </div>
+            </div>
+
+            <!-- View: Dashboard -->
+            <div id="dashboard-view" class="view hidden">
+                <div class="dashboard-container">
+                    <div class="dashboard-card main-card">
+                        <h3>Active Session</h3>
+                        <div id="active-skill-display" class="active-skill-display">
+                            <div class="placeholder-text">Select a skill from the Skills tab to start training</div>
+                        </div>
+                    </div>
+                    <div class="dashboard-card side-card">
+                        <h3>Session Stats</h3>
+                        <div class="stats-list">
+                            <div class="stat-row">
+                                <span>Time Elapsed</span>
+                                <span id="session-time" class="value">00:00:00</span>
+                            </div>
+                            <!-- Future: XP Rate, items gathered -->
+                        </div>
+                    </div>
+                    <div class="dashboard-card wide-card">
+                        <h3>Activity Log</h3>
+                        <ul id="activity-log" class="activity-log">
+                            <li class="empty-log">No recent activity</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View: Quests -->
+            <div id="quests-view" class="view hidden">
+                <div class="quest-view-header">
+                    <h2>Quest Journal</h2>
+                    <p class="subtitle">Track requirements for key progression quests.</p>
+                </div>
+                <div id="quest-list" class="quest-list">
+                    <!-- Quests populated by JS -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Skill Detail Modal -->
+        <div id="skill-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content glass-panel">
+                <div class="modal-header">
+                    <div class="modal-title-group">
+                        <div id="modal-skill-icon" class="skill-icon-large"></div>
+                        <h2 id="modal-skill-name">Skill Name</h2>
+                    </div>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="skill-stats">
+                        <div class="stat-item">
+                            <span class="label">Level</span>
+                            <span class="value" id="modal-current-level">1</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">XP</span>
+                            <span class="value" id="modal-current-xp">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">To Next</span>
+                            <span class="value" id="modal-xp-diff">0</span>
+                        </div>
+                    </div>
+
+                    <div class="walkthrough-container">
+                        <h3>Recommended Path</h3>
+                        <div id="modal-walkthrough-steps">
+                            <!-- Steps populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content glass-panel small">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="control-group">
+                        <label>Account Type</label>
+                        <select id="account-type">
+                            <option value="standard">Standard</option>
+                            <option value="ironman">Ironman</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Training Preference</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="preference" value="afk" checked>
+                                <span>AFK (Relaxed)</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="preference" value="fastest">
+                                <span>Fastest (Active)</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="preference" value="profit">
+                                <span>Profit</span>
+                            </label>
+                        </div>
+                        <p class="hint">Note: Combat skills will default to Active/Fastest.</p>
+                    </div>
+                    <hr>
+                    <div class="control-group">
+                        <label>Edit Levels</label>
+                        <button id="open-level-editor-btn" class="btn secondary">Update Skill Levels</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Editor Modal -->
+        <div id="level-editor-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content glass-panel">
+                <div class="modal-header">
+                    <h2>Update Levels</h2>
+                    <button class="close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="level-inputs-grid" class="level-inputs-grid">
+                        <!-- Inputs populated by JS -->
+                    </div>
+                    <div class="modal-actions">
+                        <button id="save-levels-btn" class="btn primary">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
+```

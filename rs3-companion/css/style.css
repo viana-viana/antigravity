@@ -1,0 +1,911 @@
+:root {
+    --bg-color: #1e1e1e;
+    /* Dark background */
+    --glass-bg: rgba(40, 40, 40, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --accent-color: #0a84ff;
+    /* macOS Blue */
+    --accent-hover: #0077ed;
+    --danger-color: #ff453a;
+    --success-color: #30d158;
+    --gold-color: #ffd60a;
+
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+    --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: radial-gradient(circle at 50% 0%, #2a2a2a 0%, #1e1e1e 100%);
+    color: var(--text-primary);
+    font-family: var(--font-stack);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+header {
+    padding: 15px 25px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.user-summary {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Skills Grid (Launchpad Style) */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 20px;
+    padding: 10px;
+}
+
+.skill-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    padding: 10px;
+    border-radius: var(--radius-md);
+}
+
+.skill-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: scale(1.05);
+}
+
+.skill-icon {
+    width: 64px;
+    height: 64px;
+    background-image: url('../assets/icons.png');
+    background-size: 500% 600%;
+    /* 5 cols, 6 rows approx for 29 icons */
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    background-color: #333;
+    /* Fallback/Background for transparent icons */
+}
+
+/* Icon Mapping (Approximate based on grid layout 5x6) */
+/* Row 1 */
+.icon-Attack {
+    background-position: 0% 0%;
+}
+
+.icon-Strength {
+    background-position: 25% 0%;
+}
+
+.icon-Defence {
+    background-position: 50% 0%;
+}
+
+.icon-Ranged {
+    background-position: 75% 0%;
+}
+
+.icon-Prayer {
+    background-position: 100% 0%;
+}
+
+/* Row 2 */
+.icon-Magic {
+    background-position: 0% 20%;
+}
+
+.icon-Runecrafting {
+    background-position: 25% 20%;
+}
+
+.icon-Construction {
+    background-position: 50% 20%;
+}
+
+.icon-Dungeoneering {
+    background-position: 75% 20%;
+}
+
+.icon-Constitution {
+    background-position: 100% 20%;
+}
+
+/* Row 3 */
+.icon-Agility {
+    background-position: 0% 40%;
+}
+
+.icon-Herblore {
+    background-position: 25% 40%;
+}
+
+.icon-Thieving {
+    background-position: 50% 40%;
+}
+
+.icon-Crafting {
+    background-position: 75% 40%;
+}
+
+.icon-Fletching {
+    background-position: 100% 40%;
+}
+
+/* Row 4 */
+.icon-Slayer {
+    background-position: 0% 60%;
+}
+
+.icon-Hunting {
+    background-position: 25% 60%;
+}
+
+.icon-Divination {
+    background-position: 50% 60%;
+}
+
+.icon-Mining {
+    background-position: 75% 60%;
+}
+
+.icon-Smithing {
+    background-position: 100% 60%;
+}
+
+/* Row 5 */
+.icon-Fishing {
+    background-position: 0% 80%;
+}
+
+.icon-Cooking {
+    background-position: 25% 80%;
+}
+
+.icon-Firemaking {
+    background-position: 50% 80%;
+}
+
+.icon-Woodcutting {
+    background-position: 75% 80%;
+}
+
+.icon-Farming {
+    background-position: 100% 80%;
+}
+
+/* Row 6 */
+.icon-Summoning {
+    background-position: 0% 100%;
+}
+
+.icon-Invention {
+    background-position: 25% 100%;
+}
+
+.icon-Archaeology {
+    background-position: 50% 100%;
+}
+
+.icon-Necromancy {
+    background-position: 75% 100%;
+}
+
+
+.skill-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.skill-level-badge {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.skill-item.maxed .skill-level-badge {
+    color: var(--gold-color);
+    border: 1px solid rgba(255, 214, 10, 0.3);
+}
+
+/* Modals */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.modal:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 30px;
+    transform: scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1001;
+}
+
+.modal:not(.hidden) .modal-content {
+    transform: scale(1);
+}
+
+.modal-content.small {
+    max-width: 400px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.skill-icon-large {
+    width: 48px;
+    height: 48px;
+    background-image: url('../assets/icons.png');
+    background-size: 500% 600%;
+    border-radius: 10px;
+    background-color: #333;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: var(--text-primary);
+}
+
+/* Skill Stats */
+.skill-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: var(--radius-md);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-item .label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-item .value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Walkthrough Steps */
+.walkthrough-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.step-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    /* Smoother apple-like corners */
+    padding: 24px;
+    position: relative;
+    transition: transform 0.2s, background 0.2s;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.step-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.step-card h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 12px;
+}
+
+.step-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.step-meta span {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.step-description {
+    font-size: 0.95rem;
+    color: #e0e0e0;
+    line-height: 1.7;
+    /* Increased for readability */
+}
+
+/* Detailed Content Styling */
+.step-description h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-secondary);
+    /* Muted label color */
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+/* Add a line after headers for separation */
+.step-description h3::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin-left: 10px;
+}
+
+.step-description h3:first-child {
+    margin-top: 0;
+}
+
+.step-description ul,
+.step-description ol {
+    margin-bottom: 15px;
+    padding-left: 0;
+    /* Remove default padding */
+    list-style: none;
+    /* Remove default bullets */
+}
+
+.step-description li {
+    margin-bottom: 8px;
+    color: #ccc;
+    padding-left: 15px;
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+/* Custom bullet for UL */
+.step-description ul li::before {
+    content: '•';
+    color: var(--accent-color);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+}
+
+/* Custom numbering for OL */
+.step-description ol {
+    counter-reset: step-counter;
+}
+
+.step-description ol li {
+    padding-left: 25px;
+}
+
+.step-description ol li::before {
+    counter-increment: step-counter;
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 4px;
+}
+
+.step-description p {
+    margin-bottom: 15px;
+    max-width: 95%;
+    /* Prevent super long lines */
+}
+
+.step-description strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Grid Layout for short lists like Gear/Inventory if helpful */
+/* 
+.step-description ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(45%, 1fr));
+    gap: 8px;
+} 
+*/
+
+.wiki-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.wiki-link:hover {
+    color: var(--accent-hover);
+    border-bottom: 1px solid var(--accent-hover);
+}
+
+/* Form Controls */
+.control-group {
+    margin-bottom: 20px;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+select,
+input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: inherit;
+}
+
+select:focus,
+input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn.primary {
+    background: var(--accent-color);
+    color: white;
+}
+
+.btn.primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.level-inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* Navigation (Segmented Control) */
+.main-nav {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px;
+    border-radius: 10px;
+    display: flex;
+    gap: 2px;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.nav-btn:hover {
+    color: var(--text-primary);
+}
+
+.nav-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Views */
+.view {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.view.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.dashboard-card {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-card.featured {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, rgba(40, 40, 40, 0.8), rgba(60, 60, 60, 0.6));
+}
+
+.dashboard-card h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+}
+
+.active-skill-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.active-skill-info h2 {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.progress-bar-container {
+    background: rgba(0, 0, 0, 0.4);
+    height: 8px;
+    border-radius: 4px;
+    width: 100%;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--accent-color);
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.highlight {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.activity-list {
+    list-style: none;
+    padding: 0;
+}
+
+.activity-list li {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.activity-list li:last-child {
+    border-bottom: none;
+}
+
+.timestamp {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* Quests */
+.quest-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.search-bar {
+    flex: 1;
+    min-width: 200px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+}
+
+.filter-toggles {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.quest-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.quest-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.quest-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.quest-card.status-completed {
+    border-color: var(--success-color);
+    opacity: 0.7;
+}
+
+.quest-card.status-locked {
+    border-color: var(--danger-color);
+}
+
+.quest-card.status-available {
+    border-color: var(--glass-border);
+}
+
+.quest-card h4 {
+    margin-bottom: 5px;
+}
+
+.quest-status-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.2rem;
+}
+
+.req-list {
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+
+.req-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.req-met {
+    color: var(--success-color);
+}
+
+.req-missing {
+    color: var(--danger-color);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
